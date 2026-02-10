@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxide_manager/l10n/app_localizations.dart';
+import '../../../shared/widgets/global_navigation_menu.dart';
 import '../data/products_repository.dart';
 import '../data/release_fetcher.dart';
 import '../domain/product.dart';
@@ -14,23 +15,29 @@ class ProductsScreen extends ConsumerWidget {
     final productsAsync = ref.watch(productsProvider);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final navigationShell = StatefulNavigationShell.of(context);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
+          SliverAppBar(
+            pinned: true,
+            automaticallyImplyLeading: false,
+            leadingWidth: 56,
+            leading: GlobalNavigationMenu(
+              currentIndex: navigationShell.currentIndex,
+              onTap: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
+            ),
             title: Text(
               l10n.store,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            actions: [
-              IconButton(
-                onPressed: () => context.push('/settings'),
-                icon: const Icon(Icons.settings_outlined),
-              ),
-              const SizedBox(width: 8),
-            ],
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -121,10 +128,33 @@ class _ProductCard extends ConsumerWidget {
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(
-                      Icons.apps,
-                      size: 28,
-                      color: colorScheme.onPrimaryContainer,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: product.iconUrl.startsWith('http')
+                          ? Image.network(
+                              product.iconUrl,
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.apps,
+                                    size: 28,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                            )
+                          : Image.asset(
+                              product.iconUrl,
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.apps,
+                                    size: 28,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                            ),
                     ),
                   ),
                   const Spacer(),

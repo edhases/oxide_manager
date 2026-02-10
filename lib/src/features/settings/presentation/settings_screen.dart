@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oxide_manager/l10n/app_localizations.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../data/settings_service.dart';
+import '../../../shared/widgets/global_navigation_menu.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -12,10 +15,23 @@ class SettingsScreen extends ConsumerWidget {
     final notifier = ref.read(settingsServiceProvider.notifier);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final navigationShell = StatefulNavigationShell.of(context);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        leadingWidth: 56,
+        leading: GlobalNavigationMenu(
+          currentIndex: navigationShell.currentIndex,
+          onTap: (index) {
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          },
+        ),
         title: Text(
           l10n.settings,
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -95,22 +111,28 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 48),
           Center(
-            child: Column(
-              children: [
-                Text(
-                  'Oxide Manager',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                Text(
-                  'Version 1.1.0',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-              ],
+            child: FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                final version = snapshot.data?.version ?? '...';
+                return Column(
+                  children: [
+                    Text(
+                      'Oxide Manager',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      'Version $version',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],

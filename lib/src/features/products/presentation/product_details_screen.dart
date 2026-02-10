@@ -36,6 +36,11 @@ class ProductDetailsScreen extends ConsumerWidget {
             slivers: [
               SliverAppBar.large(
                 pinned: true,
+                automaticallyImplyLeading: false,
+                leading: IconButton(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(Icons.arrow_back),
+                ),
                 title: Text(
                   product.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -64,10 +69,33 @@ class ProductDetailsScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        child: Icon(
-                          Icons.apps,
-                          size: 72,
-                          color: theme.colorScheme.primary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: product.iconUrl.startsWith('http')
+                              ? Image.network(
+                                  product.iconUrl,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                        Icons.apps,
+                                        size: 72,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                )
+                              : Image.asset(
+                                  product.iconUrl,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                        Icons.apps,
+                                        size: 72,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                ),
                         ),
                       ),
                     ),
@@ -122,9 +150,6 @@ class ProductDetailsScreen extends ConsumerWidget {
                             itemBuilder: (context, index) {
                               final release = releases[index];
                               final isCompatible = _checkCompatibility(release);
-                              final compatibilityMessage = isCompatible
-                                  ? null
-                                  : _getCompatibilityMessage(release, l10n);
                               final bool isInstalled =
                                   product.installedTag == release.tag;
 
@@ -132,7 +157,6 @@ class ProductDetailsScreen extends ConsumerWidget {
                                 release: release,
                                 productId: productId,
                                 isCompatible: isCompatible,
-                                compatibilityMessage: compatibilityMessage,
                                 installState: installState,
                                 isInstalled: isInstalled,
                               );
@@ -168,12 +192,6 @@ class ProductDetailsScreen extends ConsumerWidget {
     if (Platform.isLinux) return release.hasLinuxAsset;
     return false;
   }
-
-  String _getCompatibilityMessage(Release release, AppLocalizations l10n) {
-    final platforms = release.supportedPlatforms;
-    if (platforms.isEmpty) return l10n.incompatible;
-    return '${l10n.availableFor}: ${platforms.join(', ')}';
-  }
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -196,7 +214,6 @@ class _ReleaseCard extends StatelessWidget {
     required this.release,
     required this.productId,
     required this.isCompatible,
-    this.compatibilityMessage,
     required this.installState,
     required this.isInstalled,
   });
@@ -204,7 +221,6 @@ class _ReleaseCard extends StatelessWidget {
   final Release release;
   final String productId;
   final bool isCompatible;
-  final String? compatibilityMessage;
   final InstallState installState;
   final bool isInstalled;
 
@@ -272,40 +288,34 @@ class _ReleaseCard extends StatelessWidget {
                 productId: productId,
                 release: release,
                 isCompatible: isCompatible,
-                compatibilityMessage: compatibilityMessage,
+                compatibilityMessage: !isCompatible ? l10n.incompatible : null,
               ),
             ],
           ),
-          if (compatibilityMessage != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.withOpacity(0.2)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    size: 14,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    compatibilityMessage!,
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...release.supportedPlatforms.map((platform) {
+                final bool isCurrentPlatform =
+                    (platform == 'Windows' && Platform.isWindows) ||
+                    (platform == 'Android' && Platform.isAndroid) ||
+                    (platform == 'Linux' && Platform.isLinux);
+
+                return _SmallBadge(
+                  label: platform,
+                  color: isCurrentPlatform ? Colors.blue : Colors.grey,
+                );
+              }),
+              if (!isCompatible)
+                _SmallBadge(
+                  label: l10n.incompatible,
+                  color: Colors.orange,
+                  icon: Icons.warning_amber_rounded,
+                ),
+            ],
+          ),
           if (isDownloading || isInstalling) ...[
             const SizedBox(height: 20),
             ClipRRect(
@@ -348,27 +358,37 @@ class _ReleaseCard extends StatelessWidget {
 }
 
 class _SmallBadge extends StatelessWidget {
-  const _SmallBadge({required this.label, required this.color});
+  const _SmallBadge({required this.label, required this.color, this.icon});
 
   final String label;
   final Color color;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
