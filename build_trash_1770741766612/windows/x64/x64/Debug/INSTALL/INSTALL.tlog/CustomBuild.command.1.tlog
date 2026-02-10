@@ -1,0 +1,10 @@
+^E:\GITHUB\OXIDE_MANAGER\BUILD\WINDOWS\X64\CMAKEFILES\085A3A11D2863937BE640D510220A0AB\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
