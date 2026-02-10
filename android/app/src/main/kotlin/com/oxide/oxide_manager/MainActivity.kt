@@ -1,21 +1,24 @@
 package com.oxide.oxide_manager
 
 import io.flutter.embedding.android.FlutterActivity
+
+import androidx.annotation.NonNull
+import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.content.pm.PackageManager
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.oxide.manager/detection"
+    private val CHANNEL = "com.oxide.oxide_manager/apps"
 
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "getPackageVersion") {
+            if (call.method == "isAppInstalled") {
                 val packageName = call.argument<String>("packageName")
                 if (packageName != null) {
-                    val version = getPackageVersion(packageName)
-                    result.success(version)
+                    val installed = isAppInstalled(packageName)
+                    result.success(installed)
                 } else {
                     result.error("INVALID_ARGUMENT", "Package name is null", null)
                 }
@@ -25,12 +28,12 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun getPackageVersion(packageName: String): String? {
+    private fun isAppInstalled(packageName: String): Boolean {
         return try {
-            val pInfo = packageManager.getPackageInfo(packageName, 0)
-            pInfo.versionName
+            packageManager.getPackageInfo(packageName, 0)
+            true
         } catch (e: PackageManager.NameNotFoundException) {
-            null
+            false
         }
     }
 }

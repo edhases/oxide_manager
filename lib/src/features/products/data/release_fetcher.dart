@@ -14,7 +14,7 @@ class ReleaseFetcher {
       url,
       headers: {
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'OxideManagerApp',
+        'User-Agent': 'OxideManager',
       },
     );
 

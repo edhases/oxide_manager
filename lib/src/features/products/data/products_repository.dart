@@ -35,7 +35,7 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
         id: 'oxide-manager',
         name: 'Oxide Manager',
         description: 'The dashboard to manage all your Oxide apps.',
-        iconUrl: 'assets/products/oxide_manager.png',
+        iconUrl: 'assets/products/om_icon.png',
         channels: ['stable'],
         repoOwner: 'edhases',
         repoName: 'oxide_manager',
@@ -51,9 +51,8 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
         repoOwner: 'edhases',
         repoName: 'a_player',
         executableName: 'oxide_player.exe',
-        packageFamilyName:
-            'Edhases.OxidePlayer_fxkeb4dgdm144', // Assuming similar publisher
-        androidPackageName: 'com.oxideplayer.app',
+        packageFamilyName: 'Edhases.OxidePlayer_fxkeb4dgdm144',
+        androidPackageName: 'com.oxide.a_player',
       ),
       const Product(
         id: 'oxide-film',
@@ -69,51 +68,50 @@ final productsProvider = FutureProvider<List<Product>>((ref) async {
       ),
     ];
 
-    final products = <Product>[];
-
-    for (final p in rawProducts) {
-      if (p.id == 'oxide-manager') {
-        products.add(p.copyWith(installedTag: appVersion));
-        continue;
-      }
-
-      var tag = trackingService.getInstalledTag(p.id);
-
-      // 1. MSIX Smart Detection (Windows)
-      if (tag == null && Platform.isWindows && p.packageFamilyName != null) {
-        if (installedFamilies.contains(p.packageFamilyName)) {
-          tag = 'installed';
+    final products = await Future.wait(
+      rawProducts.map((p) async {
+        if (p.id == 'oxide-manager') {
+          return p.copyWith(installedTag: appVersion);
         }
-      }
 
-      // 2. Android Smart Detection
-      if (tag == null && Platform.isAndroid && p.androidPackageName != null) {
-        final version = await androidService.getPackageVersion(
-          p.androidPackageName!,
-        );
-        if (version != null) {
-          tag = version;
-        }
-      }
+        var tag = trackingService.getInstalledTag(p.id);
 
-      // 3. File System Smart Detection (Windows/Desktop)
-      if (tag == null && installPath.isNotEmpty && p.executableName != null) {
-        final possiblePaths = [
-          p_path.join(installPath, p.repoName, p.executableName),
-          p_path.join(installPath, p.id, p.executableName),
-          p_path.join(installPath, p.executableName),
-        ];
-
-        for (final path in possiblePaths) {
-          if (File(path).existsSync()) {
+        // 1. MSIX Smart Detection
+        if (tag == null && p.packageFamilyName != null) {
+          if (installedFamilies.contains(p.packageFamilyName)) {
             tag = 'installed';
-            break;
           }
         }
-      }
 
-      products.add(p.copyWith(installedTag: tag));
-    }
+        // 2. Android Smart Detection
+        if (tag == null && p.androidPackageName != null && Platform.isAndroid) {
+          final isInstalled = await androidService.isInstalled(
+            p.androidPackageName!,
+          );
+          if (isInstalled) {
+            tag = 'installed';
+          }
+        }
+
+        // 3. File System Smart Detection
+        if (tag == null && installPath.isNotEmpty && p.executableName != null) {
+          final possiblePaths = [
+            p_path.join(installPath, p.repoName, p.executableName),
+            p_path.join(installPath, p.id, p.executableName),
+            p_path.join(installPath, p.executableName),
+          ];
+
+          for (final path in possiblePaths) {
+            if (File(path).existsSync()) {
+              tag = 'installed';
+              break;
+            }
+          }
+        }
+
+        return p.copyWith(installedTag: tag);
+      }),
+    );
 
     return products;
   } catch (e) {
