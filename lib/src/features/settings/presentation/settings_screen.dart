@@ -114,7 +114,6 @@ class SettingsScreen extends ConsumerWidget {
             child: FutureBuilder<PackageInfo>(
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {
-                final version = snapshot.data?.version ?? '...';
                 return Column(
                   children: [
                     Text(
@@ -125,7 +124,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Version $version',
+                      'Version 26.2.10',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.outline,
                       ),

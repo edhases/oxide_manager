@@ -12,7 +12,10 @@ class ReleaseFetcher {
     final url = Uri.https('api.github.com', '/repos/$owner/$repo/releases');
     final response = await client.get(
       url,
-      headers: {'Accept': 'application/vnd.github.v3+json'},
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'OxideManagerApp',
+      },
     );
 
     if (response.statusCode == 200) {

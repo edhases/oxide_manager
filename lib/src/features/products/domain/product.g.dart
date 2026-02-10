@@ -16,6 +16,9 @@ _Product _$ProductFromJson(Map<String, dynamic> json) => _Product(
       .toList(),
   repoOwner: json['repoOwner'] as String,
   repoName: json['repoName'] as String,
+  executableName: json['executableName'] as String?,
+  packageFamilyName: json['packageFamilyName'] as String?,
+  androidPackageName: json['androidPackageName'] as String?,
   installedTag: json['installedTag'] as String? ?? null,
 );
 
@@ -27,5 +30,8 @@ Map<String, dynamic> _$ProductToJson(_Product instance) => <String, dynamic>{
   'channels': instance.channels,
   'repoOwner': instance.repoOwner,
   'repoName': instance.repoName,
+  'executableName': instance.executableName,
+  'packageFamilyName': instance.packageFamilyName,
+  'androidPackageName': instance.androidPackageName,
   'installedTag': instance.installedTag,
 };

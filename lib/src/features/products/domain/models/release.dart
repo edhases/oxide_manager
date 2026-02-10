@@ -38,9 +38,9 @@ enum WindowsAssetType {
 
   String get label {
     return switch (this) {
-      WindowsAssetType.installer => 'Installer (exe/msi)',
-      WindowsAssetType.portable => 'Portable (zip)',
-      WindowsAssetType.archive => 'Archive (rar/7z)',
+      WindowsAssetType.installer => 'Installer',
+      WindowsAssetType.portable => 'Portable',
+      WindowsAssetType.archive => 'Archive',
       WindowsAssetType.unknown => 'Unknown',
     };
   }
@@ -49,14 +49,23 @@ enum WindowsAssetType {
 extension ReleaseAssetX on ReleaseAsset {
   WindowsAssetType get windowsType {
     final lower = name.toLowerCase();
+
+    // Check for explicit installer extensions
     if (lower.endsWith('.exe') ||
         lower.endsWith('.msi') ||
         lower.endsWith('.msix')) {
       return WindowsAssetType.installer;
     }
+
+    // Check for zip files
     if (lower.endsWith('.zip')) {
+      // If zip contains 'setup' or 'install', it's likely an installer bundle
+      if (lower.contains('setup') || lower.contains('install')) {
+        return WindowsAssetType.installer;
+      }
       return WindowsAssetType.portable;
     }
+
     if (lower.endsWith('.rar') || lower.endsWith('.7z')) {
       return WindowsAssetType.archive;
     }

@@ -59,22 +59,31 @@ class InstallerService {
         }
       }
 
-      // 2. Search for install.bat
+      // 2. Search for common installation triggers
       final installBat = File(p.join(extractionPath, 'install.bat'));
+      final setupExe = File(p.join(extractionPath, 'setup.exe'));
+      final installExe = File(p.join(extractionPath, 'install.exe'));
+
       if (await installBat.exists()) {
-        final result = await Process.run('cmd.exe', [
-          '/c',
-          'install.bat',
-        ], workingDirectory: extractionPath);
-        if (result.exitCode != 0) {
-          throw Exception(
-            'Installation failed via install.bat: ${result.stderr}',
-          );
-        }
+        await _runCommand('cmd.exe', ['/c', 'install.bat'], extractionPath);
+      } else if (await setupExe.exists()) {
+        await _runFile(setupExe.path);
+      } else if (await installExe.exists()) {
+        await _runFile(installExe.path);
       } else {
-        // If no install.bat, assume it's just a portable app or something else
-        // Maybe just open the directory?
-        await Process.run('explorer.exe', [extractionPath]);
+        // Search for any .msix or .msi in the root
+        final entities = await dir.list().toList();
+        final installer = entities.whereType<File>().firstWhere(
+          (f) => f.path.endsWith('.msix') || f.path.endsWith('.msi'),
+          orElse: () => File(''),
+        );
+
+        if (installer.path.isNotEmpty) {
+          await _runFile(installer.path);
+        } else {
+          // Fallback: just open the directory
+          await Process.run('explorer.exe', [extractionPath]);
+        }
       }
     } finally {
       // 3. Cleanup is usually after user finishes installation,
@@ -92,6 +101,21 @@ class InstallerService {
     final result = await Process.run('explorer.exe', [filePath]);
     if (result.exitCode != 0) {
       throw Exception('Failed to start installer: ${result.stderr}');
+    }
+  }
+
+  Future<void> _runCommand(
+    String command,
+    List<String> args,
+    String workingDirectory,
+  ) async {
+    final result = await Process.run(
+      command,
+      args,
+      workingDirectory: workingDirectory,
+    );
+    if (result.exitCode != 0) {
+      throw Exception('Command failed ($command): ${result.stderr}');
     }
   }
 }

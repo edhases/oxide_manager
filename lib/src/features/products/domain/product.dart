@@ -13,6 +13,9 @@ abstract class Product with _$Product {
     required List<String> channels,
     required String repoOwner,
     required String repoName,
+    String? executableName,
+    String? packageFamilyName,
+    String? androidPackageName,
     @Default(null) String? installedTag,
   }) = _Product;
 
