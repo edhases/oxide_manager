@@ -61,3 +61,9 @@ TECHNICAL_SPEC.md
 TESTING.md
 UI_SPEC.md
 UPDATES.md
+
+# Agent related
+.tmp/
+.env
+credentials.json
+token.json
