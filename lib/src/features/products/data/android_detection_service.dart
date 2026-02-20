@@ -5,26 +5,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class AndroidDetectionService {
   static const _channel = MethodChannel('com.oxide.oxide_manager/apps');
 
-  Future<bool> isInstalled(String packageName) async {
-    if (!Platform.isAndroid) return false;
+  Future<String?> getAppVersion(String packageName) async {
+    if (!Platform.isAndroid) return null;
 
     try {
-      final bool installed = await _channel.invokeMethod('isAppInstalled', {
+      final String? version = await _channel.invokeMethod('getAppVersion', {
         'packageName': packageName,
       });
-      return installed;
+      return version;
     } catch (e) {
-      return false;
+      return null;
     }
   }
 
-  Future<Set<String>> getInstalledPackages(List<String> packageNames) async {
+  Future<Map<String, String>> getInstalledVersions(
+    List<String> packageNames,
+  ) async {
     if (!Platform.isAndroid) return {};
 
-    final installed = <String>{};
+    final installed = <String, String>{};
     for (final name in packageNames) {
-      if (await isInstalled(name)) {
-        installed.add(name);
+      final version = await getAppVersion(name);
+      if (version != null) {
+        installed[name] = version;
       }
     }
     return installed;

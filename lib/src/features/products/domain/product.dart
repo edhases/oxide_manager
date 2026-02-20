@@ -17,6 +17,7 @@ abstract class Product with _$Product {
     String? packageFamilyName,
     String? androidPackageName,
     @Default(null) String? installedTag,
+    @Default(null) String? latestTag,
   }) = _Product;
 
   factory Product.fromJson(Map<String, dynamic> json) =>

@@ -9,6 +9,7 @@ import '../domain/models/release.dart';
 import '../domain/product.dart';
 import 'controllers/install_controller.dart';
 import 'widgets/install_button.dart';
+import '../utils/version_utils.dart';
 
 class ProductDetailsScreen extends ConsumerWidget {
   const ProductDetailsScreen({super.key, required this.productId});
@@ -151,11 +152,15 @@ class ProductDetailsScreen extends ConsumerWidget {
                               final release = releases[index];
                               final isCompatible = _checkCompatibility(release);
                               final bool isInstalled =
-                                  product.installedTag == release.tag;
+                                  VersionUtils.isSameVersion(
+                                    product.installedTag,
+                                    release.tag,
+                                  );
 
                               return _ReleaseCard(
-                                release: release,
                                 productId: productId,
+                                product: product,
+                                release: release,
                                 isCompatible: isCompatible,
                                 installState: installState,
                                 isInstalled: isInstalled,
@@ -209,23 +214,25 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _ReleaseCard extends StatelessWidget {
+class _ReleaseCard extends ConsumerWidget {
   const _ReleaseCard({
-    required this.release,
     required this.productId,
+    required this.product,
+    required this.release,
     required this.isCompatible,
     required this.installState,
     required this.isInstalled,
   });
 
-  final Release release;
   final String productId;
+  final Product product;
+  final Release release;
   final bool isCompatible;
   final InstallState installState;
   final bool isInstalled;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
@@ -284,11 +291,39 @@ class _ReleaseCard extends StatelessWidget {
                   ],
                 ),
               ),
-              InstallButton(
-                productId: productId,
-                release: release,
-                isCompatible: isCompatible,
-                compatibilityMessage: !isCompatible ? l10n.incompatible : null,
+              Row(
+                children: [
+                  InstallButton(
+                    productId: productId,
+                    release: release,
+                    isCompatible: isCompatible,
+                    compatibilityMessage: !isCompatible
+                        ? l10n.incompatible
+                        : null,
+                  ),
+                  if (isInstalled &&
+                      product.androidPackageName != null &&
+                      Platform.isAndroid) ...[
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => ref
+                          .read(installControllerProvider(product.id).notifier)
+                          .uninstall(product.androidPackageName!),
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      label: const Text(
+                        'Видалити',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

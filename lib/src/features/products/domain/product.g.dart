@@ -20,6 +20,7 @@ _Product _$ProductFromJson(Map<String, dynamic> json) => _Product(
   packageFamilyName: json['packageFamilyName'] as String?,
   androidPackageName: json['androidPackageName'] as String?,
   installedTag: json['installedTag'] as String? ?? null,
+  latestTag: json['latestTag'] as String? ?? null,
 );
 
 Map<String, dynamic> _$ProductToJson(_Product instance) => <String, dynamic>{
@@ -34,4 +35,5 @@ Map<String, dynamic> _$ProductToJson(_Product instance) => <String, dynamic>{
   'packageFamilyName': instance.packageFamilyName,
   'androidPackageName': instance.androidPackageName,
   'installedTag': instance.installedTag,
+  'latestTag': instance.latestTag,
 };

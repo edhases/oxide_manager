@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxide_manager/l10n/app_localizations.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../data/settings_service.dart';
+import '../../products/data/products_repository.dart';
+import '../../../shared/utils/version_comparator.dart';
 import '../../../shared/widgets/global_navigation_menu.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -103,36 +105,46 @@ class SettingsScreen extends ConsumerWidget {
                       ? l10n.defaultTempDir
                       : settings.installPath,
                 ),
-                onTap: () {
-                  // TODO: Implement folder picker
+                onTap: () async {
+                  final String? selectedDirectory = await FilePicker.platform
+                      .getDirectoryPath();
+                  if (selectedDirectory != null) {
+                    await notifier.setInstallPath(selectedDirectory);
+                  }
                 },
               ),
             ],
           ),
           const SizedBox(height: 48),
           Center(
-            child: FutureBuilder<PackageInfo>(
-              future: PackageInfo.fromPlatform(),
-              builder: (context, snapshot) {
-                return Column(
-                  children: [
-                    Text(
-                      'Oxide Manager',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      'Version 26.2.10',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+            child: ref
+                .watch(productsProvider)
+                .when(
+                  data: (products) {
+                    final manager = products.firstWhere(
+                      (p) => p.id == 'oxide-manager',
+                    );
+                    return Column(
+                      children: [
+                        Text(
+                          'Oxide Manager',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          'Version ${manager.installedTag ?? 'Unknown'}${VersionComparator.isUpdateAvailable(manager.installedTag, manager.latestTag) ? ' (Update available: ${manager.latestTag})' : ''}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, st) => Text('Error: $e'),
+                ),
           ),
         ],
       ),

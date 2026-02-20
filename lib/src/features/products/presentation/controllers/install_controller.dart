@@ -70,25 +70,62 @@ class ProductInstallController extends StateNotifier<InstallState> {
         error: null,
       );
 
-      // 2. Download
+      // 2. Download (or reuse)
       final fileName = asset.name;
-      await for (final progress in downloadService.downloadFile(
-        asset.downloadUrl,
-        fileName,
-      )) {
-        state = state.copyWith(progress: progress);
+      final filePath = await downloadService.getDownloadPath(fileName);
+      final file = File(filePath);
+
+      if (await file.exists()) {
+        state = state.copyWith(progress: 1.0);
+      } else {
+        await for (final progress in downloadService.downloadFile(
+          asset.downloadUrl,
+          fileName,
+        )) {
+          state = state.copyWith(progress: progress);
+        }
       }
 
       state = state.copyWith(status: InstallStatus.installing);
 
       // 3. Install
-      final filePath = await downloadService.getDownloadPath(fileName);
+      if (Platform.isAndroid) {
+        final hasPermission = await installerService.checkInstallPermission();
+        if (!hasPermission) {
+          state = state.copyWith(
+            status: InstallStatus.error,
+            error:
+                'Для встановлення потрібно надати дозвіл "Встановлення невідомих додатків".',
+          );
+          await installerService.openInstallSettings();
+          return;
+        }
+      }
+
       await installerService.install(filePath);
 
-      // 4. Record as installed
-      await trackingService.setInstalledTag(productId, release.tag);
+      // 4. Handle confirmation/recording
+      if (Platform.isAndroid) {
+        // On Android, the system installer takes over. We don't know if they finished.
+        // We reset to initial state and let ProductsRepository's package detection
+        // handle the "Installed" state when the user comes back.
+        state = state.copyWith(status: InstallStatus.idle);
+      } else {
+        // For Windows/others where we track manually (or for ZIP installs)
+        await trackingService.setInstalledTag(productId, release.tag);
+        state = state.copyWith(status: InstallStatus.success);
 
-      state = state.copyWith(status: InstallStatus.success);
+        // 5. Cleanup
+        await installerService.deleteFile(filePath);
+      }
+    } catch (e) {
+      state = state.copyWith(status: InstallStatus.error, error: e.toString());
+    }
+  }
+
+  Future<void> uninstall(String packageName) async {
+    try {
+      await installerService.uninstall(packageName);
     } catch (e) {
       state = state.copyWith(status: InstallStatus.error, error: e.toString());
     }

@@ -1,115 +1,128 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/services/version_service.dart';
 import 'package:path/path.dart' as p_path;
 import '../domain/product.dart';
 import '../../settings/data/settings_service.dart';
-import 'installation_tracking_service.dart';
 import 'msix_detection_service.dart';
 import 'android_detection_service.dart';
+import 'release_fetcher.dart';
+import '../utils/version_utils.dart';
 
 final productsProvider = FutureProvider<List<Product>>((ref) async {
   try {
-    final trackingService = ref.watch(installationTrackingServiceProvider);
     final msixService = ref.watch(msixDetectionServiceProvider);
     final androidService = ref.watch(androidDetectionServiceProvider);
+    final fetcher = ref.watch(releaseFetcherProvider);
     final settings = ref.watch(settingsServiceProvider);
     final installPath = settings.installPath;
-
-    String appVersion = 'unknown';
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      appVersion = packageInfo.version;
-    } catch (e) {
-      // Fallback if PackageInfo fails
-    }
-
-    // MSIX detection: Get all installed families at once for efficiency
-    final installedFamilies = await msixService.getInstalledPackageFamilies();
-
-    // Mock data for now
-    await Future.delayed(const Duration(milliseconds: 200));
 
     final rawProducts = [
       const Product(
         id: 'oxide-manager',
         name: 'Oxide Manager',
-        description: 'The dashboard to manage all your Oxide apps.',
+        description: 'Управління продуктами Oxide',
         iconUrl: 'assets/products/om_icon.png',
         channels: ['stable'],
         repoOwner: 'edhases',
         repoName: 'oxide_manager',
-        executableName: 'oxide_manager.exe',
         androidPackageName: 'com.oxide.oxide_manager',
       ),
       const Product(
         id: 'oxide-player',
         name: 'Oxide Player',
-        description: 'Modern media player for Oxide ecosystem.',
+        description: 'Продвинутий медіаплеєр для Oxide OS',
         iconUrl: 'assets/products/oxide_player.png',
         channels: ['stable', 'beta'],
         repoOwner: 'edhases',
         repoName: 'a_player',
-        executableName: 'oxide_player.exe',
-        packageFamilyName: 'Edhases.OxidePlayer_fxkeb4dgdm144',
-        androidPackageName: 'com.oxide.a_player',
+        executableName: 'Oxide Player.exe',
+        packageFamilyName:
+            'Oxide.Player_fxkeb4dgdm144', // Prediction based on others
+        androidPackageName: 'com.example.vor_player',
       ),
       const Product(
         id: 'oxide-film',
         name: 'Oxide Film',
-        description: 'Movie catalog and streaming application.',
+        description: 'Перегляд фільмів та серіалів',
         iconUrl: 'assets/products/oxide_film.png',
         channels: ['stable'],
         repoOwner: 'edhases',
         repoName: 'oxide_film',
-        executableName: 'oxide_film.exe',
+        executableName: 'Oxide Film.exe',
         packageFamilyName: 'com.oxide.film_fxkeb4dgdm144',
-        androidPackageName: 'com.oxide.film',
+        androidPackageName: 'com.oxidefilm.oxide_film',
       ),
     ];
 
+    // Get installed versions
+    final installedFamilies = await msixService.getInstalledVersions();
+    final androidPackageNames = rawProducts
+        .map((p) => p.androidPackageName)
+        .where((n) => n != null)
+        .cast<String>()
+        .toList();
+    final installedAndroidApps = await androidService.getInstalledVersions(
+      androidPackageNames,
+    );
+
     final products = await Future.wait(
       rawProducts.map((p) async {
-        if (p.id == 'oxide-manager') {
-          return p.copyWith(installedTag: appVersion);
+        String? installedVersion;
+
+        // 1. MSIX Detection
+        if (installedFamilies.containsKey(p.packageFamilyName)) {
+          installedVersion = installedFamilies[p.packageFamilyName];
         }
 
-        var tag = trackingService.getInstalledTag(p.id);
-
-        // 1. MSIX Smart Detection
-        if (tag == null && p.packageFamilyName != null) {
-          if (installedFamilies.contains(p.packageFamilyName)) {
-            tag = 'installed';
+        // 2. Android Detection
+        if (installedVersion == null &&
+            p.androidPackageName != null &&
+            Platform.isAndroid) {
+          if (installedAndroidApps.containsKey(p.androidPackageName)) {
+            final androidVer = installedAndroidApps[p.androidPackageName]!;
+            installedVersion = VersionUtils.normalize(androidVer);
           }
         }
 
-        // 2. Android Smart Detection
-        if (tag == null && p.androidPackageName != null && Platform.isAndroid) {
-          final isInstalled = await androidService.isInstalled(
-            p.androidPackageName!,
-          );
-          if (isInstalled) {
-            tag = 'installed';
-          }
-        }
-
-        // 3. File System Smart Detection
-        if (tag == null && installPath.isNotEmpty && p.executableName != null) {
+        // 3. File System Detection (Windows/Linux)
+        if (installedVersion == null &&
+            installPath.isNotEmpty &&
+            p.executableName != null) {
           final possiblePaths = [
             p_path.join(installPath, p.repoName, p.executableName),
             p_path.join(installPath, p.id, p.executableName),
-            p_path.join(installPath, p.executableName),
+            p_path.join(installPath, p.executableName!),
           ];
 
           for (final path in possiblePaths) {
             if (File(path).existsSync()) {
-              tag = 'installed';
+              installedVersion = 'installed';
               break;
             }
           }
         }
 
-        return p.copyWith(installedTag: tag);
+        // Handle self version
+        if (p.id == 'oxide-manager') {
+          installedVersion = VersionService.versionName;
+        }
+
+        // Fetch latest version from GitHub
+        String? latestVersion;
+        try {
+          final releases = await fetcher.fetchReleases(p.repoOwner, p.repoName);
+          if (releases.isNotEmpty) {
+            latestVersion = releases.first.tag;
+          }
+        } catch (e) {
+          // Log error or ignore
+        }
+
+        return p.copyWith(
+          installedTag: installedVersion,
+          latestTag: latestVersion,
+        );
       }),
     );
 

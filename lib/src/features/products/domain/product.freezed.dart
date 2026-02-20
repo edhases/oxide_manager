@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Product {
 
- String get id; String get name; String get description; String get iconUrl; List<String> get channels; String get repoOwner; String get repoName; String? get executableName; String? get packageFamilyName; String? get androidPackageName; String? get installedTag;
+ String get id; String get name; String get description; String get iconUrl; List<String> get channels; String get repoOwner; String get repoName; String? get executableName; String? get packageFamilyName; String? get androidPackageName; String? get installedTag; String? get latestTag;
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ProductCopyWith<Product> get copyWith => _$ProductCopyWithImpl<Product>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Product&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&const DeepCollectionEquality().equals(other.channels, channels)&&(identical(other.repoOwner, repoOwner) || other.repoOwner == repoOwner)&&(identical(other.repoName, repoName) || other.repoName == repoName)&&(identical(other.executableName, executableName) || other.executableName == executableName)&&(identical(other.packageFamilyName, packageFamilyName) || other.packageFamilyName == packageFamilyName)&&(identical(other.androidPackageName, androidPackageName) || other.androidPackageName == androidPackageName)&&(identical(other.installedTag, installedTag) || other.installedTag == installedTag));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Product&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&const DeepCollectionEquality().equals(other.channels, channels)&&(identical(other.repoOwner, repoOwner) || other.repoOwner == repoOwner)&&(identical(other.repoName, repoName) || other.repoName == repoName)&&(identical(other.executableName, executableName) || other.executableName == executableName)&&(identical(other.packageFamilyName, packageFamilyName) || other.packageFamilyName == packageFamilyName)&&(identical(other.androidPackageName, androidPackageName) || other.androidPackageName == androidPackageName)&&(identical(other.installedTag, installedTag) || other.installedTag == installedTag)&&(identical(other.latestTag, latestTag) || other.latestTag == latestTag));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,iconUrl,const DeepCollectionEquality().hash(channels),repoOwner,repoName,executableName,packageFamilyName,androidPackageName,installedTag);
+int get hashCode => Object.hash(runtimeType,id,name,description,iconUrl,const DeepCollectionEquality().hash(channels),repoOwner,repoName,executableName,packageFamilyName,androidPackageName,installedTag,latestTag);
 
 @override
 String toString() {
-  return 'Product(id: $id, name: $name, description: $description, iconUrl: $iconUrl, channels: $channels, repoOwner: $repoOwner, repoName: $repoName, executableName: $executableName, packageFamilyName: $packageFamilyName, androidPackageName: $androidPackageName, installedTag: $installedTag)';
+  return 'Product(id: $id, name: $name, description: $description, iconUrl: $iconUrl, channels: $channels, repoOwner: $repoOwner, repoName: $repoName, executableName: $executableName, packageFamilyName: $packageFamilyName, androidPackageName: $androidPackageName, installedTag: $installedTag, latestTag: $latestTag)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ProductCopyWith<$Res>  {
   factory $ProductCopyWith(Product value, $Res Function(Product) _then) = _$ProductCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, String iconUrl, List<String> channels, String repoOwner, String repoName, String? executableName, String? packageFamilyName, String? androidPackageName, String? installedTag
+ String id, String name, String description, String iconUrl, List<String> channels, String repoOwner, String repoName, String? executableName, String? packageFamilyName, String? androidPackageName, String? installedTag, String? latestTag
 });
 
 
@@ -65,7 +65,7 @@ class _$ProductCopyWithImpl<$Res>
 
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? iconUrl = null,Object? channels = null,Object? repoOwner = null,Object? repoName = null,Object? executableName = freezed,Object? packageFamilyName = freezed,Object? androidPackageName = freezed,Object? installedTag = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? iconUrl = null,Object? channels = null,Object? repoOwner = null,Object? repoName = null,Object? executableName = freezed,Object? packageFamilyName = freezed,Object? androidPackageName = freezed,Object? installedTag = freezed,Object? latestTag = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -78,6 +78,7 @@ as String,executableName: freezed == executableName ? _self.executableName : exe
 as String?,packageFamilyName: freezed == packageFamilyName ? _self.packageFamilyName : packageFamilyName // ignore: cast_nullable_to_non_nullable
 as String?,androidPackageName: freezed == androidPackageName ? _self.androidPackageName : androidPackageName // ignore: cast_nullable_to_non_nullable
 as String?,installedTag: freezed == installedTag ? _self.installedTag : installedTag // ignore: cast_nullable_to_non_nullable
+as String?,latestTag: freezed == latestTag ? _self.latestTag : latestTag // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String iconUrl,  List<String> channels,  String repoOwner,  String repoName,  String? executableName,  String? packageFamilyName,  String? androidPackageName,  String? installedTag)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String iconUrl,  List<String> channels,  String repoOwner,  String repoName,  String? executableName,  String? packageFamilyName,  String? androidPackageName,  String? installedTag,  String? latestTag)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Product() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channels,_that.repoOwner,_that.repoName,_that.executableName,_that.packageFamilyName,_that.androidPackageName,_that.installedTag);case _:
+return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channels,_that.repoOwner,_that.repoName,_that.executableName,_that.packageFamilyName,_that.androidPackageName,_that.installedTag,_that.latestTag);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channe
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String iconUrl,  List<String> channels,  String repoOwner,  String repoName,  String? executableName,  String? packageFamilyName,  String? androidPackageName,  String? installedTag)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String iconUrl,  List<String> channels,  String repoOwner,  String repoName,  String? executableName,  String? packageFamilyName,  String? androidPackageName,  String? installedTag,  String? latestTag)  $default,) {final _that = this;
 switch (_that) {
 case _Product():
-return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channels,_that.repoOwner,_that.repoName,_that.executableName,_that.packageFamilyName,_that.androidPackageName,_that.installedTag);case _:
+return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channels,_that.repoOwner,_that.repoName,_that.executableName,_that.packageFamilyName,_that.androidPackageName,_that.installedTag,_that.latestTag);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channe
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String iconUrl,  List<String> channels,  String repoOwner,  String repoName,  String? executableName,  String? packageFamilyName,  String? androidPackageName,  String? installedTag)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String iconUrl,  List<String> channels,  String repoOwner,  String repoName,  String? executableName,  String? packageFamilyName,  String? androidPackageName,  String? installedTag,  String? latestTag)?  $default,) {final _that = this;
 switch (_that) {
 case _Product() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channels,_that.repoOwner,_that.repoName,_that.executableName,_that.packageFamilyName,_that.androidPackageName,_that.installedTag);case _:
+return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channels,_that.repoOwner,_that.repoName,_that.executableName,_that.packageFamilyName,_that.androidPackageName,_that.installedTag,_that.latestTag);case _:
   return null;
 
 }
@@ -219,7 +220,7 @@ return $default(_that.id,_that.name,_that.description,_that.iconUrl,_that.channe
 @JsonSerializable()
 
 class _Product implements Product {
-  const _Product({required this.id, required this.name, required this.description, required this.iconUrl, required final  List<String> channels, required this.repoOwner, required this.repoName, this.executableName, this.packageFamilyName, this.androidPackageName, this.installedTag = null}): _channels = channels;
+  const _Product({required this.id, required this.name, required this.description, required this.iconUrl, required final  List<String> channels, required this.repoOwner, required this.repoName, this.executableName, this.packageFamilyName, this.androidPackageName, this.installedTag = null, this.latestTag = null}): _channels = channels;
   factory _Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);
 
 @override final  String id;
@@ -239,6 +240,7 @@ class _Product implements Product {
 @override final  String? packageFamilyName;
 @override final  String? androidPackageName;
 @override@JsonKey() final  String? installedTag;
+@override@JsonKey() final  String? latestTag;
 
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
@@ -253,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Product&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&const DeepCollectionEquality().equals(other._channels, _channels)&&(identical(other.repoOwner, repoOwner) || other.repoOwner == repoOwner)&&(identical(other.repoName, repoName) || other.repoName == repoName)&&(identical(other.executableName, executableName) || other.executableName == executableName)&&(identical(other.packageFamilyName, packageFamilyName) || other.packageFamilyName == packageFamilyName)&&(identical(other.androidPackageName, androidPackageName) || other.androidPackageName == androidPackageName)&&(identical(other.installedTag, installedTag) || other.installedTag == installedTag));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Product&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.iconUrl, iconUrl) || other.iconUrl == iconUrl)&&const DeepCollectionEquality().equals(other._channels, _channels)&&(identical(other.repoOwner, repoOwner) || other.repoOwner == repoOwner)&&(identical(other.repoName, repoName) || other.repoName == repoName)&&(identical(other.executableName, executableName) || other.executableName == executableName)&&(identical(other.packageFamilyName, packageFamilyName) || other.packageFamilyName == packageFamilyName)&&(identical(other.androidPackageName, androidPackageName) || other.androidPackageName == androidPackageName)&&(identical(other.installedTag, installedTag) || other.installedTag == installedTag)&&(identical(other.latestTag, latestTag) || other.latestTag == latestTag));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,iconUrl,const DeepCollectionEquality().hash(_channels),repoOwner,repoName,executableName,packageFamilyName,androidPackageName,installedTag);
+int get hashCode => Object.hash(runtimeType,id,name,description,iconUrl,const DeepCollectionEquality().hash(_channels),repoOwner,repoName,executableName,packageFamilyName,androidPackageName,installedTag,latestTag);
 
 @override
 String toString() {
-  return 'Product(id: $id, name: $name, description: $description, iconUrl: $iconUrl, channels: $channels, repoOwner: $repoOwner, repoName: $repoName, executableName: $executableName, packageFamilyName: $packageFamilyName, androidPackageName: $androidPackageName, installedTag: $installedTag)';
+  return 'Product(id: $id, name: $name, description: $description, iconUrl: $iconUrl, channels: $channels, repoOwner: $repoOwner, repoName: $repoName, executableName: $executableName, packageFamilyName: $packageFamilyName, androidPackageName: $androidPackageName, installedTag: $installedTag, latestTag: $latestTag)';
 }
 
 
@@ -273,7 +275,7 @@ abstract mixin class _$ProductCopyWith<$Res> implements $ProductCopyWith<$Res> {
   factory _$ProductCopyWith(_Product value, $Res Function(_Product) _then) = __$ProductCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, String iconUrl, List<String> channels, String repoOwner, String repoName, String? executableName, String? packageFamilyName, String? androidPackageName, String? installedTag
+ String id, String name, String description, String iconUrl, List<String> channels, String repoOwner, String repoName, String? executableName, String? packageFamilyName, String? androidPackageName, String? installedTag, String? latestTag
 });
 
 
@@ -290,7 +292,7 @@ class __$ProductCopyWithImpl<$Res>
 
 /// Create a copy of Product
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? iconUrl = null,Object? channels = null,Object? repoOwner = null,Object? repoName = null,Object? executableName = freezed,Object? packageFamilyName = freezed,Object? androidPackageName = freezed,Object? installedTag = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? iconUrl = null,Object? channels = null,Object? repoOwner = null,Object? repoName = null,Object? executableName = freezed,Object? packageFamilyName = freezed,Object? androidPackageName = freezed,Object? installedTag = freezed,Object? latestTag = freezed,}) {
   return _then(_Product(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -303,6 +305,7 @@ as String,executableName: freezed == executableName ? _self.executableName : exe
 as String?,packageFamilyName: freezed == packageFamilyName ? _self.packageFamilyName : packageFamilyName // ignore: cast_nullable_to_non_nullable
 as String?,androidPackageName: freezed == androidPackageName ? _self.androidPackageName : androidPackageName // ignore: cast_nullable_to_non_nullable
 as String?,installedTag: freezed == installedTag ? _self.installedTag : installedTag // ignore: cast_nullable_to_non_nullable
+as String?,latestTag: freezed == latestTag ? _self.latestTag : latestTag // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

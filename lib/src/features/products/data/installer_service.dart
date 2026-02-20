@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 class InstallerService {
   Future<void> install(String filePath) async {
@@ -17,7 +18,7 @@ class InstallerService {
       }
     } else if (Platform.isAndroid) {
       // TODO: Implement actual installation logic for Android
-      // This usually involves opening the APK via intent
+      await _installApk(filePath);
     } else if (Platform.isLinux) {
       // For Linux, we might need to chmod +x and run for AppImage
       await Process.run('chmod', ['+x', filePath]);
@@ -116,6 +117,47 @@ class InstallerService {
     );
     if (result.exitCode != 0) {
       throw Exception('Command failed ($command): ${result.stderr}');
+    }
+  }
+
+  Future<void> _installApk(String filePath) async {
+    const channel = MethodChannel('com.oxide.oxide_manager/apps');
+    try {
+      await channel.invokeMethod('installApk', {'filePath': filePath});
+    } on PlatformException catch (e) {
+      if (e.code == 'INSTALL_ERROR' || e.code == 'FILE_NOT_FOUND') {
+        throw Exception('Native installation failed: ${e.message}');
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> checkInstallPermission() async {
+    if (!Platform.isAndroid) return true;
+    const channel = MethodChannel('com.oxide.oxide_manager/apps');
+    return await channel.invokeMethod<bool>('checkInstallPermission') ?? true;
+  }
+
+  Future<void> openInstallSettings() async {
+    if (!Platform.isAndroid) return;
+    const channel = MethodChannel('com.oxide.oxide_manager/apps');
+    await channel.invokeMethod('openInstallSettings');
+  }
+
+  Future<void> deleteFile(String filePath) async {
+    final file = File(filePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
+  Future<void> uninstall(String packageName) async {
+    if (!Platform.isAndroid) return;
+    const channel = MethodChannel('com.oxide.oxide_manager/apps');
+    try {
+      await channel.invokeMethod('uninstallApp', {'packageName': packageName});
+    } on PlatformException catch (e) {
+      throw Exception('Failed to uninstall app: ${e.message}');
     }
   }
 }

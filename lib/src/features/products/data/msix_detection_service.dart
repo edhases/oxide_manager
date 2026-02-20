@@ -2,38 +2,42 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MSIXDetectionService {
-  Future<bool> isInstalled(String packageFamilyName) async {
-    if (!Platform.isWindows) return false;
+  Future<String?> getAppVersion(String packageFamilyName) async {
+    if (!Platform.isWindows) return null;
 
     try {
-      // Use Get-AppxPackage to check if the package exists
       final result = await Process.run('powershell', [
         '-Command',
-        'Get-AppxPackage -Name "$packageFamilyName"',
+        'Get-AppxPackage -Name "$packageFamilyName" | Select-Object -ExpandProperty Version',
       ]);
 
-      // If the output is not empty, it means the package is found
-      return result.stdout.toString().trim().isNotEmpty;
+      final version = result.stdout.toString().trim();
+      return version.isNotEmpty ? version : null;
     } catch (e) {
-      return false;
+      return null;
     }
   }
 
-  Future<Set<String>> getInstalledPackageFamilies() async {
+  Future<Map<String, String>> getInstalledVersions() async {
     if (!Platform.isWindows) return {};
 
     try {
-      final result = await Process.run('powershell', [
+      // Return map of FamilyName -> Version
+      // We'll use a custom format to specific output for easier parsing
+      final resultText = await Process.run('powershell', [
         '-Command',
-        'Get-AppxPackage | Select-Object -ExpandProperty PackageFamilyName',
+        r'Get-AppxPackage | ForEach-Object { $_.PackageFamilyName + "=" + $_.Version }',
       ]);
 
-      return result.stdout
-          .toString()
-          .split('\n')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toSet();
+      final map = <String, String>{};
+      final lines = resultText.stdout.toString().split('\n');
+      for (final line in lines) {
+        final parts = line.trim().split('=');
+        if (parts.length == 2) {
+          map[parts[0]] = parts[1];
+        }
+      }
+      return map;
     } catch (e) {
       return {};
     }
